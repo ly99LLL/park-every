@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>心流花园 · Mind Garden</title>
+  <link rel="stylesheet" href="/styles/main.css">
+</head>
+<body>
+
+  <!-- 粒子背景 -->
+  <canvas id="particleCanvas"></canvas>
+
+  <!-- 3D花园容器 -->
+  <div id="gardenContainer"></div>
+
+  <!-- 顶部导航 -->
+  <nav class="top-nav">
+    <div class="nav-brand">🌱 心流花园</div>
+    <div class="nav-actions">
+      <button class="nav-btn active" data-view="write" id="btnWrite">✍️ 书写</button>
+      <button class="nav-btn" data-view="garden" id="btnGarden">✨ 花园</button>
+      <button class="nav-btn" data-view="memories" id="btnMemories">📖 回忆</button>
+    </div>
+  </nav>
+
+  <!-- 主内容区 -->
+  <div class="app-container" id="appContainer">
+
+    <!-- 呼吸引导环 -->
+    <div class="breathing-guide" id="breathingGuide">
+      <div class="breathing-ring" id="breathingRing"></div>
+      <div class="breathing-hint">呼 吸</div>
+    </div>
+
+    <!-- 书写视图 -->
+    <div class="main-card" id="writeView">
+      <div class="greeting">
+        <div class="greeting-question" id="greeting">今天，你想说什么？</div>
+        <div class="greeting-subtitle" id="subtitle">每一次落笔，都在星空里点亮一颗星</div>
+      </div>
+
+      <!-- 每日提示 -->
+      <div class="daily-prompt" id="dailyPrompt">
+        <div class="daily-prompt-label">✦ 今日之问</div>
+        <div class="daily-prompt-text" id="dailyPromptText">加载中...</div>
+      </div>
+
+      <!-- 提示类别选择 -->
+      <div class="prompt-categories" id="promptCategories">
+        <button class="cat-btn active" data-cat="daily">🌅 日常</button>
+        <button class="cat-btn" data-cat="deep">🧠 哲思</button>
+        <button class="cat-btn" data-cat="poetic">🎨 诗意</button>
+        <button class="cat-btn" data-cat="relational">💞 关系</button>
+      </div>
+
+      <!-- 写作区 -->
+      <div class="writing-area">
+        <textarea
+          class="writing-textarea"
+          id="writingTextarea"
+          placeholder="在这里写下你的思考、感受、或是任何想说的话..."
+          maxlength="500"
+        ></textarea>
+      </div>
+
+      <!-- 写作底部 -->
+      <div class="writing-footer">
+        <div class="char-count">
+          <span id="charDots"></span>
+          <span id="charCount">0 / 500</span>
+        </div>
+        <div class="emotion-indicator" id="emotionIndicator">
+          <span class="emotion-dot" id="emotionDot"></span>
+          <span id="emotionLabel"></span>
+        </div>
+      </div>
+
+      <!-- 提交按钮 -->
+      <div class="submit-area">
+        <button class="btn-submit" id="btnSubmit" disabled>
+          <span class="btn-submit-icon">🌿</span>
+          <span>种下这颗心念</span>
+        </button>
+        <button class="btn-secondary" id="btnNewPrompt">
+          🔄 换一个问题
+        </button>
+      </div>
+
+      <!-- 反思卡片（提交后显示） -->
+      <div class="reflection-card" id="reflectionCard">
+        <div class="reflection-card-title">💭 它引出了一个问题...</div>
+        <div class="reflection-card-text" id="reflectionText"></div>
+      </div>
+
+      <!-- 花园统计 -->
+      <div class="garden-stats" id="gardenStats">
+        <div class="stat-item">
+          <div class="stat-number" id="statThoughts">0</div>
+          <div class="stat-label">颗心念</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="statDays">1</div>
+          <div class="stat-label">天花园</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 回忆视图（隐藏） -->
+    <div class="main-card" id="memoriesView" style="display:none;">
+      <div class="greeting">
+        <div class="greeting-question">📖 你的心念花园</div>
+        <div class="greeting-subtitle">每一颗星，都曾经是一个瞬间的停留</div>
+      </div>
+      <div id="memoriesList" style="max-height: 60vh; overflow-y: auto;"></div>
+    </div>
+  </div>
+
+  <!-- 花园沉浸式覆盖层（仅在花园模式可见） -->
+  <div class="garden-immersive" id="gardenImmersive">
+    <!-- 情绪光环 -->
+    <div class="mood-aura" id="moodAura"></div>
+
+    <!-- 底部状态栏 -->
+    <div class="garden-status-bar" id="gardenStatusBar">
+      <div class="garden-status-left">
+        <span class="garden-status-icon">🌱</span>
+        <span id="gardenThoughtCount">0</span> 颗心念 &nbsp;·&nbsp;
+        <span id="gardenAge">1</span> 天花园
+      </div>
+      <div class="garden-status-center">
+        <div class="mood-bar" id="moodBar"></div>
+      </div>
+      <div class="garden-status-right">
+        <span class="dominant-mood" id="dominantMood">
+          <span class="mood-dot-sm"></span>
+          <span id="dominantMoodText">---</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- 浮动按钮：回到书写 -->
+    <button class="float-write-btn" id="floatWriteBtn" title="种下新的心念">
+      <span>✍️</span>
+    </button>
+
+    <!-- 思想详情侧面板 -->
+    <div class="thought-detail-panel" id="thoughtDetailPanel">
+      <button class="panel-close" id="panelClose">×</button>
+      <div class="panel-emotion" id="panelEmotion"></div>
+      <div class="panel-content" id="panelContent"></div>
+      <div class="panel-tags" id="panelTags"></div>
+      <div class="panel-depth" id="panelDepth"></div>
+      <div class="panel-time" id="panelTime"></div>
+    </div>
+  </div>
+
+  <!-- 思想气泡（3D花园中 hover 显示） -->
+  <div class="thought-bubble" id="thoughtBubble">
+    <div class="thought-bubble-time" id="bubbleTime"></div>
+    <div class="thought-bubble-content" id="bubbleContent"></div>
+    <div class="thought-bubble-emotion" id="bubbleEmotion"></div>
+  </div>
+
+  <!-- Toast消息 -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Three.js CDN -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+  import * as THREE from 'three';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+  // ============================================================
+  // 🌌 粒子系统 —— 宇宙尘埃，随呼吸而动
+  // ============================================================
+  class ParticleSystem {
+    constructor() {
+      this.canvas = document.getElementById('particleCanvas');
+      this.ctx = this.canvas.getContext('2d');
+      this.particles = [];
+      this.mouse = { x: 0.5, y: 0.5, targetX: 0.5, targetY: 0.5 };
+      this.time = 0;
+      this.isWriting = false;
+
+      this.resize();
+      this.initParticles();
+      this.bindEvents();
+      this.animate();
+    }
+
+    resize() {
+      this.width = window.innerWidth;
+      this.height = window.innerHeight;
+      this.canvas.width = this.width * window.devicePixelRatio;
+      this.canvas.height = this.height * window.devicePixelRatio;
+      this.canvas.style.width = this.width + 'px';
+      this.canvas.style.height = this.height + 'px';
+      this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+
+    initParticles() {
+      const count = Math.floor((this.width * this.height) / 8000);
+      this.particles = [];
+      for (let i = 0; i < count; i++) {
+        this.particles.push({
+          x: Math.random() * this.width,
+          y: Math.random() * this.height,
+          size: Math.random() * 1.8 + 0.3,
+          baseSize: Math.random() * 1.8 + 0.3,
+          speedX: (Math.random() - 0.5) * 0.15,
+          speedY: (Math.random() - 0.5) * 0.15 - 0.08,
+          opacity: Math.random() * 0.5 + 0.15,
+          baseOpacity: Math.random() * 0.5 + 0.15,
+          phase: Math.random() * Math.PI * 2,
+          freq: Math.random() * 0.015 + 0.005,
+        });
+      }
+    }
+
+    bindEvents() {
+      window.addEventListener('resize', () => {
+        this.resize();
+        this.initParticles();
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        this.mouse.targetX = e.clientX / this.width;
+        this.mouse.targetY = e.clientY / this.height;
+      });
+
+      document.addEventListener('touchmove', (e) => {
+        this.mouse.targetX = e.touches[0].clientX / this.width;
+        this.mouse.targetY = e.touches[0].clientY / this.height;
+      }, { passive: true });
+
+      const textarea = document.getElementById('writingTextarea');
+      textarea.addEventListener('focus', () => { this.isWriting = true; });
+      textarea.addEventListener('blur', () => { this.isWriting = false; });
+    }
+
+    animate() {
+      this.time += 0.016;
+      // 平滑鼠标
+      this.mouse.x += (this.mouse.targetX - this.mouse.x) * 0.03;
+      this.mouse.y += (this.mouse.targetY - this.mouse.y) * 0.03;
+
+      this.ctx.clearRect(0, 0, this.width, this.height);
+
+      const mx = this.mouse.x * this.width;
+      const my = this.mouse.y * this.height;
+
+      for (const p of this.particles) {
+        // 基础运动
+        p.x += p.speedX;
+        p.y += p.speedY;
+
+        // 循环边界
+        if (p.x < -20) p.x = this.width + 20;
+        if (p.x > this.width + 20) p.x = -20;
+        if (p.y < -20) p.y = this.height + 20;
+        if (p.y > this.height + 20) p.y = -20;
+
+        // 呼吸效果
+        const breathe = Math.sin(this.time * 0.8 + p.phase) * 0.3 + 0.7;
+        p.opacity = p.baseOpacity * breathe;
+        p.size = p.baseSize * (1 + breathe * 0.3);
+
+        // 靠近鼠标时变亮
+        const dx = p.x - mx;
+        const dy = p.y - my;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const influence = Math.max(0, 1 - dist / 200);
+
+        if (influence > 0) {
+          p.opacity = Math.min(1, p.opacity + influence * 0.5);
+          p.size = p.baseSize * (1 + influence * 2);
+        }
+
+        // 写作模式——更活跃
+        if (this.isWriting) {
+          p.opacity = Math.min(1, p.opacity * 1.3);
+          p.speedX += (Math.random() - 0.5) * 0.02;
+          p.speedY += (Math.random() - 0.5) * 0.02;
+          p.speedX *= 0.995;
+          p.speedY *= 0.995;
+        }
+
+        // 绘制粒子
+        this.ctx.beginPath();
+        this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        const gradient = this.ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3);
+        const hue = 220 + influence * 30 + breathe * 10;
+        gradient.addColorStop(0, `hsla(${hue}, 40%, 75%, ${p.opacity})`);
+        gradient.addColorStop(0.5, `hsla(${hue}, 30%, 60%, ${p.opacity * 0.4})`);
+        gradient.addColorStop(1, 'transparent');
+        this.ctx.fillStyle = gradient;
+        this.ctx.fill();
+      }
+
+      requestAnimationFrame(() => this.animate());
+    }
+
+    // 创建绽放粒子（提交想法时）
+    bloom(x, y, color) {
+      const count = 40;
+      const bloomParticles = [];
+      for (let i = 0; i < count; i++) {
+        const angle = (Math.PI * 2 / count) * i + Math.random() * 0.3;
+        const speed = 1.5 + Math.random() * 4;
+        bloomParticles.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 1,
+          decay: 0.008 + Math.random() * 0.025,
+          size: 2 + Math.random() * 4,
+          color,
+        });
+      }
+
+      const animateBloom = () => {
+        for (const p of bloomParticles) {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.02; // 微重力
+          p.life -= p.decay;
+          if (p.life <= 0) continue;
+
+          this.ctx.beginPath();
+          this.ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+          this.ctx.fillStyle = p.color.replace('1)', `${p.life})`).replace('rgb', 'rgba');
+          this.ctx.fill();
+        }
+
+        const alive = bloomParticles.filter(p => p.life > 0);
+        if (alive.length > 0) {
+          requestAnimationFrame(animateBloom);
+        }
+      };
+      animateBloom();
+    }
+  }
+
+  // ============================================================
+  // 🎵 环境音景 —— 用声音营造内心的宁静空间
+  // ============================================================
+  class AmbientSound {
+    constructor() {
+      this.ctx = null;
+      this.active = false;
+      this.volume = 0.15;
+      this.nodes = [];
+    }
+
+    async init() {
+      try {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.value = 0;
+        this.masterGain.connect(this.ctx.destination);
+      } catch (e) {
+        console.log('音频初始化失败，花园将以静默模式运行');
+      }
+    }
+
+    async start() {
+      if (!this.ctx) await this.init();
+      if (!this.ctx || this.active) return;
+      if (this.ctx.state === 'suspended') await this.ctx.resume();
+
+      this.active = true;
+
+      // 基调 —— 深沉的持续音 (根音)
+      this.createDrone(55, 0.04, 0.3);   // A1
+      this.createDrone(82.4, 0.025, 0.25); // E2
+      this.createDrone(110, 0.02, 0.2);  // A2
+
+      // 泛音层 —— 更高更轻
+      this.createDrone(220, 0.008, 0.1);  // A3
+      this.createDrone(330, 0.005, 0.06); // E4
+
+      // 缓慢淡入
+      this.masterGain.gain.setValueAtTime(0, this.ctx.currentTime);
+      this.masterGain.gain.linearRampToValueAtTime(this.volume, this.ctx.currentTime + 3);
+    }
+
+    createDrone(freq, gainVal, lfoDepth) {
+      if (!this.ctx) return;
+
+      const now = this.ctx.currentTime;
+
+      // 主振荡器
+      const osc = this.ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+
+      // 轻微失谐
+      const osc2 = this.ctx.createOscillator();
+      osc2.type = 'sine';
+      osc2.frequency.value = freq + (Math.random() - 0.5) * 1.5;
+
+      // 低频调制
+      const lfo = this.ctx.createOscillator();
+      lfo.type = 'sine';
+      lfo.frequency.value = 0.03 + Math.random() * 0.06;
+      const lfoGain = this.ctx.createGain();
+      lfoGain.gain.value = lfoDepth * freq;
+      lfo.connect(lfoGain);
+      lfoGain.connect(osc.frequency);
+      lfoGain.connect(osc2.frequency);
+
+      // 独立增益
+      const gain = this.ctx.createGain();
+      gain.gain.value = gainVal;
+
+      // 连接
+      osc.connect(gain);
+      osc2.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(now);
+      osc2.start(now);
+      lfo.start(now);
+
+      this.nodes.push({ oscillators: [osc, osc2, lfo], gain });
+    }
+
+    stop() {
+      if (!this.ctx || !this.active) return;
+
+      this.masterGain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 1.5);
+      setTimeout(() => {
+        for (const node of this.nodes) {
+          try {
+            node.oscillators.forEach(o => { try { o.stop(); } catch(e) {} });
+          } catch(e) {}
+        }
+        this.nodes = [];
+        this.active = false;
+      }, 2000);
+    }
+
+    // 对情绪做出响应 —— 不同的情绪微调音色
+    respondToEmotion(emotion) {
+      if (!this.ctx || !this.active) return;
+
+      const now = this.ctx.currentTime;
+      const emotionalFreq = {
+        '喜悦': 1.03, '感激': 1.02, '希望': 1.01, '爱': 1.015,
+        '悲伤': 0.98, '恐惧': 0.97, '愤怒': 0.99,
+        '宁静': 1.0, '平静': 1.0, '思考': 1.005,
+        '困惑': 0.995, '孤独': 0.985, '惊奇': 1.02,
+        '灵感': 1.025, '坚定': 1.01
+      };
+
+      const ratio = emotionalFreq[emotion] || 1.0;
+      for (const node of this.nodes) {
+        for (const osc of node.oscillators) {
+          if (osc instanceof OscillatorNode) {
+            osc.frequency.linearRampToValueAtTime(
+              osc.frequency.value * ratio, now + 0.5
+            );
+          }
+        }
+      }
+    }
+  }
+
+  // ============================================================
+  // 🌸 3D花园 —— 每一个想法都是一朵会发光的花
+  // ============================================================
+  class Garden3D {
+    constructor() {
+      this.container = document.getElementById('gardenContainer');
+      this.scene = null;
+      this.camera = null;
+      this.renderer = null;
+      this.controls = null;
+      this.thoughtMeshes = [];
+      this.stars = null;
+      this.active = false;
+
+      this.init();
+    }
+
+    init() {
+      // 场景
+      this.scene = new THREE.Scene();
+      this.scene.fog = new THREE.FogExp2(0x080816, 0.00015);
+
+      // 相机
+      this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+      this.camera.position.set(0, 3, 12);
+      this.camera.lookAt(0, 1.5, 0);
+
+      // 渲染器
+      this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      this.renderer.setSize(window.innerWidth, window.innerHeight);
+      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      this.renderer.toneMappingExposure = 1.2;
+      this.container.appendChild(this.renderer.domElement);
+
+      // 轨道控制
+      this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+      this.controls.enableDamping = true;
+      this.controls.dampingFactor = 0.08;
+      this.controls.minDistance = 4;
+      this.controls.maxDistance = 25;
+      this.controls.maxPolarAngle = Math.PI * 0.75;
+      this.controls.autoRotate = true;
+      this.controls.autoRotateSpeed = 0.15;
+      this.controls.target.set(0, 1.5, 0);
+
+      // 光照
+      const ambientLight = new THREE.AmbientLight(0x222244, 1.2);
+      this.scene.add(ambientLight);
+
+      const pointLight = new THREE.PointLight(0xd4a574, 30, 20, 1.5);
+      pointLight.position.set(0, 5, 0);
+      this.scene.add(pointLight);
+
+      // 星空背景
+      this.createStarfield();
+
+      // 地面光环
+      this.createGroundRing();
+
+      // 事件
+      window.addEventListener('resize', () => this.onResize());
+      this.renderer.domElement.addEventListener('click', (e) => this.onClick(e));
+      this.renderer.domElement.addEventListener('mousemove', (e) => this.onHover(e));
+      this.renderer.domElement.addEventListener('mouseleave', () => this.clearHover());
+
+      // 当前hover的球体
+      this.hoveredMesh = null;
+
+      // 开始渲染
+      this.animate();
+    }
+
+    // Hover检测
+    onHover(event) {
+      if (!this.active) return;
+
+      const rect = this.renderer.domElement.getBoundingClientRect();
+      const mouse = new THREE.Vector2(
+        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        -((event.clientY - rect.top) / rect.height) * 2 + 1
+      );
+
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(mouse, this.camera);
+
+      const intersects = raycaster.intersectObjects(this.thoughtMeshes);
+
+      if (intersects.length > 0) {
+        const obj = intersects[0].object;
+        if (this.hoveredMesh !== obj) {
+          this.clearHover();
+          this.hoveredMesh = obj;
+          obj.userData.hovered = true;
+
+          // 发光增强
+          const innerHalo = obj.children.find(c => c.name?.startsWith('innerHalo'));
+          const outerHalo = obj.children.find(c => c.name?.startsWith('outerHalo'));
+          if (innerHalo) innerHalo.material.opacity = 0.55;
+          if (outerHalo) outerHalo.material.opacity = 0.25;
+
+          // 球体放大
+          obj.scale.lerp(new THREE.Vector3(1.25, 1.25, 1.25), 0.3);
+
+          // 光标
+          this.renderer.domElement.style.cursor = 'pointer';
+        }
+      } else {
+        this.clearHover();
+      }
+    }
+
+    clearHover() {
+      if (this.hoveredMesh) {
+        const innerHalo = this.hoveredMesh.children.find(c => c.name?.startsWith('innerHalo'));
+        const outerHalo = this.hoveredMesh.children.find(c => c.name?.startsWith('outerHalo'));
+        if (innerHalo) innerHalo.material.opacity = innerHalo.userData.baseOpacity || 0.25;
+        if (outerHalo) outerHalo.material.opacity = outerHalo.userData.baseOpacity || 0.08;
+        this.hoveredMesh.userData.hovered = false;
+        this.hoveredMesh.scale.set(1, 1, 1);
+        this.hoveredMesh = null;
+        this.renderer.domElement.style.cursor = 'grab';
+      }
+    }
+
+    createStarfield() {
+      const starsGeo = new THREE.BufferGeometry();
+      const starCount = 2000;
+      const positions = new Float32Array(starCount * 3);
+      const colors = new Float32Array(starCount * 3);
+
+      for (let i = 0; i < starCount; i++) {
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.random() * Math.PI * 0.5;
+        const radius = 20 + Math.random() * 30;
+        positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+        positions[i * 3 + 1] = radius * Math.cos(phi) + 2;
+        positions[i * 3 + 2] = radius * Math.sin(phi) * Math.sin(theta);
+
+        const hue = Math.random() * 60 + 200; // 蓝到紫
+        const color = new THREE.Color();
+        color.setHSL(hue / 360, 0.4, 0.6 + Math.random() * 0.4);
+        colors[i * 3] = color.r;
+        colors[i * 3 + 1] = color.g;
+        colors[i * 3 + 2] = color.b;
+      }
+
+      starsGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      starsGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+      const starsMat = new THREE.PointsMaterial({
+        size: 0.05,
+        vertexColors: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        transparent: true,
+        opacity: 0.8,
+      });
+
+      this.stars = new THREE.Points(starsGeo, starsMat);
+      this.scene.add(this.stars);
+    }
+
+    createGroundRing() {
+      const ringGeo = new THREE.TorusGeometry(3.5, 0.015, 16, 120);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: 0xd4a574,
+        transparent: true,
+        opacity: 0.25,
+      });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.y = -2.5;
+      ring.name = 'groundRing';
+      this.scene.add(ring);
+    }
+
+    // 添加一个思想到花园 —— 每个球都是一个有温度的存在
+    addThought(thought) {
+      const { id, color, position_x, position_y, position_z, content, emotion } = thought;
+
+      // 解析颜色
+      const baseColor = new THREE.Color(color);
+
+      // 判断冷暖来调整球体大小 —— 暖色更大，冷色更小巧
+      const isWarm = this._isWarmColor(baseColor);
+      const baseSize = isWarm ? 0.28 : 0.22;
+
+      // === 核心球体 ===
+      const geo = new THREE.SphereGeometry(baseSize, 48, 48);
+      const mat = new THREE.MeshStandardMaterial({
+        color: baseColor,
+        emissive: baseColor,
+        emissiveIntensity: isWarm ? 2.0 : 1.2,
+        roughness: 0.15,
+        metalness: 0.05,
+      });
+      const sphere = new THREE.Mesh(geo, mat);
+      sphere.position.set(position_x, position_y, position_z);
+      sphere.userData = {
+        id, content, emotion, color, thought,
+        baseColor, isWarm, baseSize,
+        baseEmissive: mat.emissiveIntensity,
+        hovered: false,
+        pulseOffset: Math.random() * Math.PI * 2,
+      };
+      sphere.name = `thought-${id}`;
+      this.scene.add(sphere);
+      this.thoughtMeshes.push(sphere);
+
+      // === 内层光晕 ===
+      const innerHaloGeo = new THREE.SphereGeometry(baseSize * 1.3, 32, 32);
+      const innerHaloMat = new THREE.MeshBasicMaterial({
+        color: baseColor,
+        transparent: true,
+        opacity: 0.25,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const innerHalo = new THREE.Mesh(innerHaloGeo, innerHaloMat);
+      innerHalo.name = `innerHalo-${id}`;
+      innerHalo.userData = { baseOpacity: 0.25 };
+      sphere.add(innerHalo);
+
+      // === 外层光晕（更大更淡） ===
+      const outerHaloGeo = new THREE.SphereGeometry(baseSize * 1.8, 32, 32);
+      const outerHaloMat = new THREE.MeshBasicMaterial({
+        color: baseColor,
+        transparent: true,
+        opacity: 0.08,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const outerHalo = new THREE.Mesh(outerHaloGeo, outerHaloMat);
+      outerHalo.name = `outerHalo-${id}`;
+      outerHalo.userData = { baseOpacity: 0.08 };
+      sphere.add(outerHalo);
+
+      // === 轨道环 ===
+      const orbitGeo = new THREE.TorusGeometry(baseSize * 1.6, 0.006, 16, 48);
+      const orbitMat = new THREE.MeshBasicMaterial({
+        color: baseColor,
+        transparent: true,
+        opacity: 0.2,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const orbit = new THREE.Mesh(orbitGeo, orbitMat);
+      orbit.name = `orbit-${id}`;
+      orbit.rotation.x = Math.random() * Math.PI;
+      orbit.rotation.y = Math.random() * Math.PI;
+      sphere.add(orbit);
+
+      return sphere;
+    }
+
+    _isWarmColor(color) {
+      // 判断颜色是暖色还是冷色
+      const hsl = {};
+      color.getHSL(hsl);
+      // 暖色: 0-60 (红-黄) 或 很低的饱和度(白/灰偏暖)
+      return (hsl.h < 0.25 || hsl.h > 0.85) && hsl.s > 0.15;
+    }
+
+    // 加载所有思想
+    loadThoughts(thoughts) {
+      for (const mesh of this.thoughtMeshes) {
+        this.scene.remove(mesh);
+      }
+      this.thoughtMeshes = [];
+      for (const thought of thoughts) {
+        this.addThought(thought);
+      }
+    }
+
+    // 点击检测
+    onClick(event) {
+      if (!this.active) return;
+      // 忽略面板上的点击
+      if (event.target.closest('.thought-detail-panel')) return;
+      if (event.target.closest('.float-write-btn')) return;
+      if (event.target.closest('.garden-status-bar')) return;
+
+      const rect = this.renderer.domElement.getBoundingClientRect();
+      const mouse = new THREE.Vector2(
+        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        -((event.clientY - rect.top) / rect.height) * 2 + 1
+      );
+
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(mouse, this.camera);
+
+      const intersects = raycaster.intersectObjects(this.thoughtMeshes);
+      if (intersects.length > 0) {
+        const obj = intersects[0].object;
+        // 点击动画 —— 球体短暂放大
+        this._pulseClick(obj);
+        this.showThoughtBubble(obj.userData, event.clientX, event.clientY);
+      } else if (this.thoughtMeshes.length > 0) {
+        this.recallRandomMemory(event.clientX, event.clientY);
+      }
+    }
+
+    // 点击脉冲动画
+    _pulseClick(obj) {
+      const originalScale = obj.scale.clone();
+      const startTime = Date.now();
+      const duration = 400;
+
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        // 弹性缓出
+        const t = 1 - Math.pow(1 - progress, 3);
+        const bounce = 1 + Math.sin(t * Math.PI) * 0.4 * (1 - t);
+        obj.scale.setScalar(bounce);
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          obj.scale.copy(originalScale);
+        }
+      };
+      animate();
+    }
+
+    async recallRandomMemory(x, y) {
+      try {
+        const res = await fetch('/api/memory');
+        const data = await res.json();
+        if (data.thought) {
+          this.showThoughtBubble(
+            { thought: data.thought, content: data.thought.content, emotion: data.thought.emotion, color: data.thought.color },
+            x, y
+          );
+        }
+      } catch(e) {}
+    }
+
+    showThoughtBubble(data, x, y) {
+      // 在花园模式下使用详情面板
+      if (window.app && window.app.currentView === 'garden') {
+        window.app.openThoughtPanel(data);
+        return;
+      }
+
+      // 其他模式下使用浮动气泡
+      const bubble = document.getElementById('thoughtBubble');
+      const bubbleTime = document.getElementById('bubbleTime');
+      const bubbleContent = document.getElementById('bubbleContent');
+      const bubbleEmotion = document.getElementById('bubbleEmotion');
+
+      const date = data.thought?.created_at
+        ? new Date(data.thought.created_at + 'Z').toLocaleString('zh-CN')
+        : '某个时刻';
+
+      bubbleTime.textContent = date;
+      bubbleContent.textContent = data.content;
+      bubbleEmotion.textContent = data.emotion;
+      bubbleEmotion.style.background = data.color + '22';
+      bubbleEmotion.style.color = data.color;
+      bubbleEmotion.style.border = `1px solid ${data.color}44`;
+
+      bubble.style.left = Math.min(x + 20, window.innerWidth - 300) + 'px';
+      bubble.style.top = Math.min(y - 20, window.innerHeight - 200) + 'px';
+      bubble.classList.add('visible');
+
+      clearTimeout(this._bubbleTimeout);
+      this._bubbleTimeout = setTimeout(() => {
+        bubble.classList.remove('visible');
+      }, 4000);
+    }
+
+    onResize() {
+      this.camera.aspect = window.innerWidth / window.innerHeight;
+      this.camera.updateProjectionMatrix();
+      this.renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    animate() {
+      requestAnimationFrame(() => this.animate());
+
+      this.controls.update();
+
+      // 星空缓慢旋转
+      if (this.stars) {
+        this.stars.rotation.y += 0.0001;
+        this.stars.rotation.x += 0.00005;
+      }
+
+      // 思想球体 —— 各自呼吸
+      const time = Date.now() * 0.001;
+      for (const mesh of this.thoughtMeshes) {
+        const ud = mesh.userData;
+        const pulseOffset = ud.pulseOffset || 0;
+
+        // 上下漂浮
+        mesh.position.y += Math.sin(time * 0.5 + pulseOffset) * 0.0015;
+
+        // 缓慢自转
+        mesh.rotation.y += 0.004;
+        mesh.rotation.x += 0.001;
+
+        if (!ud.hovered) {
+          // 呼吸效果：光晕透明度以各自节奏波动
+          const breathe = Math.sin(time * 1.3 + pulseOffset) * 0.35 + 0.65;
+          const innerHalo = mesh.children.find(c => c.name?.startsWith('innerHalo'));
+          const outerHalo = mesh.children.find(c => c.name?.startsWith('outerHalo'));
+          if (innerHalo && innerHalo.userData.baseOpacity) {
+            innerHalo.material.opacity = innerHalo.userData.baseOpacity * breathe;
+          }
+          if (outerHalo && outerHalo.userData.baseOpacity) {
+            outerHalo.material.opacity = outerHalo.userData.baseOpacity * breathe;
+          }
+
+          // 球体微妙的呼吸缩放
+          const scaleBreathe = 1 + Math.sin(time * 0.8 + pulseOffset) * 0.04;
+          mesh.scale.lerp(new THREE.Vector3(scaleBreathe, scaleBreathe, scaleBreathe), 0.05);
+        }
+
+        // 轨道环缓慢旋转
+        const orbit = mesh.children.find(c => c.name?.startsWith('orbit'));
+        if (orbit) {
+          orbit.rotation.z += 0.002;
+          orbit.rotation.x += 0.001;
+        }
+      }
+
+      if (this.active || this.container.style.opacity > 0.1) {
+        this.renderer.render(this.scene, this.camera);
+      }
+    }
+
+    setActive(active) {
+      this.active = active;
+      if (active) {
+        this.container.classList.add('active');
+        this.controls.autoRotate = true;
+      } else {
+        this.container.classList.remove('active');
+        this.controls.autoRotate = false;
+      }
+    }
+  }
+
+  // ============================================================
+  // 🌿 应用控制器
+  // ============================================================
+  class App {
+    constructor() {
+      this.particles = new ParticleSystem();
+      this.garden = new Garden3D();
+      this.sound = new AmbientSound();
+      this.currentView = 'write';
+      this.currentCategory = 'daily';
+      this.thoughts = [];
+      this.gardenData = null;
+
+      this.init();
+    }
+
+    async init() {
+      this.bindUI();
+      await this.loadGarden();
+      await this.loadDailyPrompt();
+      this.bindTextarea();
+      this.initAudioOnInteraction();
+
+      // 初始状态：书写模式，花园作为暗淡背景
+      document.getElementById('gardenContainer').classList.add('dimmed');
+      this.garden.setActive(true);
+    }
+
+    initAudioOnInteraction() {
+      const startAudio = async () => {
+        await this.sound.start();
+        document.removeEventListener('click', startAudio);
+        document.removeEventListener('keydown', startAudio);
+      };
+      document.addEventListener('click', startAudio);
+      document.addEventListener('keydown', startAudio);
+    }
+
+    bindUI() {
+      // 视图切换
+      document.getElementById('btnWrite').addEventListener('click', () => this.switchView('write'));
+      document.getElementById('btnGarden').addEventListener('click', () => this.switchView('garden'));
+      document.getElementById('btnMemories').addEventListener('click', () => this.switchView('memories'));
+
+      // 提示类别
+      document.getElementById('promptCategories').addEventListener('click', (e) => {
+        const btn = e.target.closest('.cat-btn');
+        if (!btn) return;
+        this.currentCategory = btn.dataset.cat;
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.loadPrompt(this.currentCategory);
+      });
+
+      // 提交按钮
+      document.getElementById('btnSubmit').addEventListener('click', () => this.submitThought());
+
+      // 新提示
+      document.getElementById('btnNewPrompt').addEventListener('click', () => {
+        this.loadPrompt(this.currentCategory);
+      });
+
+      // 键盘快捷键
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          this.submitThought();
+        }
+      });
+
+      // 花园模式的浮动按钮 → 回到书写
+      document.getElementById('floatWriteBtn').addEventListener('click', () => {
+        this.switchView('write');
+      });
+
+      // 关闭思想详情面板
+      document.getElementById('panelClose').addEventListener('click', () => {
+        this.closeThoughtPanel();
+      });
+
+      // 点击面板外部关闭（点击3D花园背景）
+      document.getElementById('gardenContainer').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('gardenContainer')) {
+          this.closeThoughtPanel();
+        }
+      });
+    }
+
+    bindTextarea() {
+      const textarea = document.getElementById('writingTextarea');
+      const btnSubmit = document.getElementById('btnSubmit');
+      const charCount = document.getElementById('charCount');
+      const charDots = document.getElementById('charDots');
+      const emotionIndicator = document.getElementById('emotionIndicator');
+      const emotionDot = document.getElementById('emotionDot');
+      const emotionLabel = document.getElementById('emotionLabel');
+      const mainCard = document.querySelector('.main-card');
+
+      textarea.addEventListener('input', () => {
+        const len = textarea.value.length;
+        charCount.textContent = `${len} / 500`;
+        btnSubmit.disabled = len === 0;
+
+        // 更新字符点
+        const dotCount = Math.min(Math.floor(len / 25), 20);
+        charDots.innerHTML = Array.from({ length: dotCount }, (_, i) =>
+          `<span class="char-dot lit" style="animation-delay:${i * 0.02}s"></span>`
+        ).join('');
+
+        // 实时情绪检测
+        if (len > 10) {
+          this.detectEmotionRealtime(textarea.value);
+        } else if (len === 0) {
+          emotionIndicator.classList.remove('visible');
+        }
+
+        // 聚焦状态
+        if (len > 0 && !mainCard.classList.contains('focused')) {
+          mainCard.classList.add('focused');
+        } else if (len === 0) {
+          mainCard.classList.remove('focused');
+        }
+      });
+
+      textarea.addEventListener('focus', () => {
+        mainCard.classList.add('focused');
+      });
+
+      textarea.addEventListener('blur', () => {
+        if (!textarea.value.length) {
+          mainCard.classList.remove('focused');
+        }
+      });
+    }
+
+    async loadGarden() {
+      try {
+        const res = await fetch('/api/garden');
+        const data = await res.json();
+        this.gardenData = data;
+        this.thoughts = data.thoughts || [];
+        this.garden.loadThoughts(this.thoughts);
+        this.updateStats(data);
+      } catch (err) {
+        console.error('加载花园失败:', err);
+      }
+    }
+
+    async loadDailyPrompt() {
+      try {
+        const res = await fetch(`/api/prompt?category=${this.currentCategory}`);
+        const data = await res.json();
+        document.getElementById('dailyPromptText').textContent = data.prompt || data.daily;
+        document.getElementById('greeting').textContent = this.getRandomGreeting();
+      } catch (err) {
+        document.getElementById('dailyPromptText').textContent = '今天，你想说什么？';
+      }
+    }
+
+    async loadPrompt(category) {
+      try {
+        const res = await fetch(`/api/prompt?category=${category}`);
+        const data = await res.json();
+        document.getElementById('dailyPromptText').textContent = data.prompt;
+      } catch (err) {
+        // 静默处理
+      }
+    }
+
+    getRandomGreeting() {
+      const greetings = [
+        '今天，你想说什么？',
+        '此刻，你在想什么？',
+        '有什么话，想对宇宙说？',
+        '让思绪流淌吧...',
+        '打开心扉，写下来。',
+      ];
+      return greetings[Math.floor(Math.random() * greetings.length)];
+    }
+
+    async submitThought() {
+      const textarea = document.getElementById('writingTextarea');
+      const content = textarea.value.trim();
+      if (!content) return;
+
+      const btnSubmit = document.getElementById('btnSubmit');
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = '<span class="btn-submit-icon">✨</span><span>正在种下...</span>';
+
+      try {
+        const res = await fetch('/api/thoughts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          // 绽放动画
+          const rect = textarea.getBoundingClientRect();
+          const centerX = rect.left + rect.width / 2;
+          const centerY = rect.top + rect.height / 2;
+          const color = data.color.startsWith('#')
+            ? this.hexToRgb(data.color)
+            : data.color;
+          this.particles.bloom(centerX, centerY, color);
+
+          // 音景响应情绪
+          this.sound.respondToEmotion(data.emotion);
+
+          // 添加到3D花园
+          this.garden.addThought(data.thought);
+          this.thoughts.unshift(data.thought);
+
+          // 清空输入
+          textarea.value = '';
+          document.getElementById('charCount').textContent = '0 / 500';
+          document.getElementById('charDots').innerHTML = '';
+          document.querySelector('.main-card').classList.remove('focused');
+
+          // 显示反思问题（含AI深度分析）
+          const refText = document.getElementById('reflectionText');
+          if (data.depth) {
+            refText.innerHTML = `<em>"${data.depth}"</em><br><br>💭 ${data.reflection}`;
+          } else {
+            refText.textContent = data.reflection;
+          }
+          document.getElementById('reflectionCard').classList.add('visible');
+
+          // 更新统计和花园覆盖层
+          await this.loadGarden();
+          this.updateGardenOverlay();
+
+          // 显示toast（含AI标签）
+          const tagStr = data.tags?.length ? ` ${data.tags.map(t => '#' + t).join(' ')}` : '';
+          const sourceLabel = data.source === 'deepseek-ai' ? ' 🧠' : '';
+          this.showToast(`✨ 你的「${data.emotion}」${tagStr} 已化作花园中的一颗星${sourceLabel}`);
+
+          // 加载新提示
+          setTimeout(() => this.loadDailyPrompt(), 2000);
+        }
+      } catch (err) {
+        this.showToast('连接宇宙失败...请稍后再试');
+      }
+
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = '<span class="btn-submit-icon">🌿</span><span>种下这颗心念</span>';
+    }
+
+    switchView(view) {
+      this.currentView = view;
+
+      const writeView = document.getElementById('writeView');
+      const memoriesView = document.getElementById('memoriesView');
+      const gardenContainer = document.getElementById('gardenContainer');
+      const gardenImmersive = document.getElementById('gardenImmersive');
+      const breathingGuide = document.getElementById('breathingGuide');
+      const promptCategories = document.getElementById('promptCategories');
+      const dailyPrompt = document.getElementById('dailyPrompt');
+
+      // 更新导航按钮
+      document.querySelectorAll('.nav-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.view === view);
+      });
+
+      if (view === 'write') {
+        // ===== 书写模式：卡片为主，花园为背景 =====
+        writeView.style.display = '';
+        memoriesView.style.display = 'none';
+        promptCategories.style.display = '';
+        dailyPrompt.style.display = '';
+        breathingGuide.style.display = '';
+        gardenImmersive.classList.remove('active');
+        gardenContainer.classList.add('dimmed');
+        gardenContainer.style.pointerEvents = 'none';
+        this.garden.setActive(true);   // 保持渲染但 dimmed
+        this.closeThoughtPanel();
+
+      } else if (view === 'garden') {
+        // ===== 花园模式：全屏沉浸，书写隐藏 =====
+        writeView.style.display = 'none';
+        memoriesView.style.display = 'none';
+        breathingGuide.style.display = 'none';
+        gardenContainer.classList.remove('dimmed');
+        gardenContainer.style.pointerEvents = 'auto';
+        gardenImmersive.classList.add('active');
+        this.garden.setActive(true);
+        this.updateGardenOverlay();
+        this.closeThoughtPanel();
+
+      } else if (view === 'memories') {
+        // ===== 回忆模式 =====
+        writeView.style.display = 'none';
+        memoriesView.style.display = '';
+        breathingGuide.style.display = 'none';
+        gardenImmersive.classList.remove('active');
+        gardenContainer.classList.add('dimmed');
+        gardenContainer.style.pointerEvents = 'none';
+        this.garden.setActive(true);
+        this.closeThoughtPanel();
+        this.renderMemories();
+      }
+    }
+
+    // 更新花园覆盖层信息
+    updateGardenOverlay() {
+      document.getElementById('gardenThoughtCount').textContent = this.thoughts.length;
+      document.getElementById('gardenAge').textContent = this.gardenData?.garden_age_days || 1;
+
+      // 计算主导情绪和分布
+      if (this.thoughts.length > 0) {
+        const moodCounts = {};
+        this.thoughts.forEach(t => {
+          moodCounts[t.emotion] = (moodCounts[t.emotion] || 0) + 1;
+        });
+        const sorted = Object.entries(moodCounts).sort((a, b) => b[1] - a[1]);
+        const dominant = sorted[0];
+        document.getElementById('dominantMoodText').textContent = dominant[0];
+
+        // 更新情绪色点
+        const dot = document.querySelector('.mood-dot-sm');
+        const dominantThought = this.thoughts.find(t => t.emotion === dominant[0]);
+        if (dot && dominantThought) {
+          dot.style.background = dominantThought.color || '#d4a574';
+        }
+
+        // 渲染情绪分布条
+        const moodBar = document.getElementById('moodBar');
+        const total = this.thoughts.length;
+        moodBar.innerHTML = sorted.map(([emotion, count]) => {
+          const t = this.thoughts.find(th => th.emotion === emotion);
+          const color = t?.color || '#d4a574';
+          const pct = (count / total * 100).toFixed(1);
+          return `<div class="mood-bar-segment" style="width:${pct}%;background:${color};" title="${emotion}: ${count}颗"></div>`;
+        }).join('');
+      }
+    }
+
+    // 打开思想详情面板
+    openThoughtPanel(data) {
+      const panel = document.getElementById('thoughtDetailPanel');
+
+      // 情绪标签
+      const emotionEl = document.getElementById('panelEmotion');
+      emotionEl.textContent = data.emotion;
+      emotionEl.style.background = (data.color || '#d4a574') + '22';
+      emotionEl.style.color = data.color || '#d4a574';
+      emotionEl.style.border = `1px solid ${data.color || '#d4a574'}44`;
+
+      // 正文
+      document.getElementById('panelContent').textContent = data.content;
+
+      // 副标签
+      const tagsEl = document.getElementById('panelTags');
+      if (data.tags && data.tags.length > 0) {
+        tagsEl.innerHTML = data.tags.map(t => `<span class="panel-tag">#${t}</span>`).join('');
+        tagsEl.style.display = 'flex';
+      } else {
+        tagsEl.style.display = 'none';
+      }
+
+      // AI 深度分析
+      const depthEl = document.getElementById('panelDepth');
+      if (data.depth) {
+        depthEl.textContent = '💭 ' + data.depth;
+        depthEl.style.display = '';
+      } else {
+        depthEl.style.display = 'none';
+      }
+
+      // 时间
+      document.getElementById('panelTime').textContent = data.thought?.created_at
+        ? new Date(data.thought.created_at + 'Z').toLocaleString('zh-CN', {
+            year: 'numeric', month: 'long', day: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+          })
+        : '';
+
+      panel.classList.add('open');
+    }
+
+    // 关闭面板
+    closeThoughtPanel() {
+      document.getElementById('thoughtDetailPanel').classList.remove('open');
+    }
+
+    renderMemories() {
+      const container = document.getElementById('memoriesList');
+      if (this.thoughts.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center;padding:3rem 1rem;color:var(--text-muted);">
+            <div style="font-size:3rem;margin-bottom:1rem;">🌱</div>
+            <p>花园还是空的...</p>
+            <p style="font-size:0.85rem;">写下你的第一个心念吧</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = this.thoughts.map(t => {
+        const date = t.created_at
+          ? new Date(t.created_at + 'Z').toLocaleString('zh-CN', {
+              month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            })
+          : '';
+        return `
+          <div style="padding:1.2rem;margin-bottom:0.8rem;background:rgba(255,255,255,0.02);border-radius:12px;border:1px solid var(--border-subtle);border-left:3px solid ${t.color};transition:all 0.2s ease;"
+               onmouseenter="this.style.background='rgba(255,255,255,0.05)'"
+               onmouseleave="this.style.background='rgba(255,255,255,0.02)'">
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.5rem;">${date}</div>
+            <div style="color:var(--text-primary);line-height:1.7;">${this.escapeHtml(t.content)}</div>
+            <span style="display:inline-block;margin-top:0.5rem;padding:0.15rem 0.6rem;border-radius:50px;font-size:0.7rem;background:${t.color}22;color:${t.color};border:1px solid ${t.color}44;">${t.emotion}</span>
+          </div>`;
+      }).join('');
+    }
+
+    updateStats(data) {
+      document.getElementById('statThoughts').textContent = data.thoughts_count || 0;
+      document.getElementById('statDays').textContent = data.garden_age_days || 1;
+      document.getElementById('gardenStats').classList.add('visible');
+    }
+
+    showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('visible');
+      clearTimeout(this._toastTimeout);
+      this._toastTimeout = setTimeout(() => {
+        toast.classList.remove('visible');
+      }, 3000);
+    }
+
+    detectEmotionRealtime(text) {
+      const indicator = document.getElementById('emotionIndicator');
+      const dot = document.getElementById('emotionDot');
+      const label = document.getElementById('emotionLabel');
+
+      // 简单的客户端情绪检测 (与服务端逻辑一致)
+      const patterns = [
+        { keys: ['快乐','开心','高兴','喜悦','幸福','美好','棒'], emotion: '喜悦', color: '#f4c542' },
+        { keys: ['感谢','感恩','谢谢','感激','庆幸'], emotion: '感激', color: '#e8b87a' },
+        { keys: ['希望','期待','未来','梦想','相信','会好的'], emotion: '希望', color: '#7ec8a0' },
+        { keys: ['爱','喜欢','温暖','柔软','心动'], emotion: '爱', color: '#e8917a' },
+        { keys: ['悲伤','难过','伤心','哭','痛苦','失去','遗憾'], emotion: '悲伤', color: '#7b9ec7' },
+        { keys: ['害怕','恐惧','担心','焦虑','不安','紧张'], emotion: '恐惧', color: '#b8a0d8' },
+        { keys: ['生气','愤怒','讨厌','烦'], emotion: '愤怒', color: '#d4786e' },
+        { keys: ['困惑','迷茫','不知道','为什么','搞不懂'], emotion: '困惑', color: '#c0c0d0' },
+        { keys: ['孤独','寂寞','一个人','孤单'], emotion: '孤独', color: '#8899bb' },
+        { keys: ['坚持','努力','加油','一定','坚定'], emotion: '坚定', color: '#8bb8a0' },
+        { keys: ['安静','宁静','平和','舒适','放松','平静'], emotion: '宁静', color: '#b0d0c8' },
+      ];
+
+      let found = null;
+      for (const p of patterns) {
+        for (const key of p.keys) {
+          if (text.includes(key)) { found = p; break; }
+        }
+        if (found) break;
+      }
+
+      if (found) {
+        dot.style.backgroundColor = found.color;
+        dot.style.boxShadow = `0 0 8px ${found.color}`;
+        label.textContent = found.emotion;
+        label.style.color = found.color;
+        indicator.classList.add('visible');
+      }
+    }
+
+    hexToRgb(hex) {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result
+        ? `rgb(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)})`
+        : 'rgb(212, 165, 116)';
+    }
+
+    escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  }
+
+  // ============================================================
+  // 🚀 启动
+  // ============================================================
+  window.addEventListener('DOMContentLoaded', () => {
+    window.app = new App();
+    console.log(`
+      🌱  心流花园已就绪
+      🌌  写下你的思考，让它在星空中绽放
+      ✨  按 Ctrl+Enter 快速提交
+      🖱️  点击「花园」探索你的内心宇宙
+    `);
+  });
+  </script>
+</body>
+</html>

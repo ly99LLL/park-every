@@ -1,0 +1,34 @@
+# 依赖
+node_modules/
+
+# 数据库文件（包含用户数据）
+data/garden.db
+data/garden.db-shm
+data/garden.db-wal
+data/*.db*
+
+# 构建输出
+dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 操作系统
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# 环境变量（如果存在）
+.env
+.env.local
+
+# 日志
+*.log
+npm-debug.log*
+
+# 临时文件
+*.tmp
+*.temp

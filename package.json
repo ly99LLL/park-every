@@ -1,0 +1,73 @@
+{
+  "name": "mind-garden",
+  "version": "1.0.0",
+  "description": "心流花园 — 一个结合哲学反思与数字艺术的互动体验。写下思考，种下心念，让内心的花园在星空中生长。",
+  "main": "main.js",
+  "author": "心流花园",
+  "license": "MIT",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "electron": "electron .",
+    "electron:dev": "electron . --dev",
+    "build": "electron-builder --win nsis",
+    "build:dir": "electron-builder --win dir"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "sql.js": "^1.14.1"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.0.4",
+    "asar": "^3.2.0",
+    "electron": "^42.3.0",
+    "electron-builder": "^26.8.1"
+  },
+  "build": {
+    "appId": "com.mindgarden.app",
+    "productName": "心流花园",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "server.js",
+      "src/**/*",
+      "public/**/*",
+      "node_modules/**/*",
+      "data/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "data/",
+        "to": "data/"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "public/icon.png",
+      "forceCodeSigning": false,
+      "signAndEditExecutable": false
+    },
+    "electronDist": "node_modules/electron/dist",
+    "npmRebuild": false,
+    "portable": {
+      "artifactName": "心流花园.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "心流花园"
+    },
+    "asar": true
+  }
+}

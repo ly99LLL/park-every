@@ -1,0 +1,954 @@
+/* ===== 心流花园 - 主样式表 ===== */
+/* 设计哲学：宁静、深邃、让思想呼吸 */
+
+/* ===== CSS 变量与基础 ===== */
+:root {
+  --bg-deep: #080816;
+  --bg-primary: #0f0f24;
+  --bg-card: rgba(20, 20, 48, 0.75);
+  --bg-card-hover: rgba(28, 28, 60, 0.85);
+  --text-primary: #e4e4ec;
+  --text-secondary: #a0a0c0;
+  --text-muted: #6a6a88;
+  --accent-gold: #d4a574;
+  --accent-gold-glow: rgba(212, 165, 116, 0.3);
+  --accent-rose: #c77d8d;
+  --accent-teal: #5d8a8a;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-glow: rgba(212, 165, 116, 0.2);
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --font-display: 'Georgia', 'Noto Serif SC', 'STSong', serif;
+  --font-body: 'Inter', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --transition-slow: 0.6s cubic-bezier(0.25, 0.1, 0.25, 1);
+  --transition-medium: 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
+  --transition-fast: 0.18s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* ===== 全局重置 ===== */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+}
+
+/* ===== Canvas 背景层 ===== */
+#particleCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ===== Three.js 花园容器 ===== */
+#gardenContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.2s ease;
+}
+
+#gardenContainer.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ===== 主布局 ===== */
+.app-container {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+/* ===== 顶部导航 ===== */
+.top-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2rem 2rem;
+  background: linear-gradient(180deg, rgba(8, 8, 22, 0.95) 60%, rgba(8, 8, 22, 0) 100%);
+  backdrop-filter: blur(8px);
+}
+
+.nav-brand {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--accent-gold);
+  letter-spacing: 0.1em;
+  opacity: 0.85;
+  transition: opacity var(--transition-fast);
+}
+
+.nav-brand:hover {
+  opacity: 1;
+}
+
+.nav-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.nav-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  transition: all var(--transition-fast);
+  backdrop-filter: blur(8px);
+}
+
+.nav-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+  border-color: var(--border-glow);
+}
+
+.nav-btn.active {
+  background: rgba(212, 165, 116, 0.12);
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+/* ===== 主卡片 ===== */
+.main-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 3rem;
+  max-width: 640px;
+  width: 100%;
+  transition: all var(--transition-slow);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 0 1px var(--border-subtle),
+    0 0 80px rgba(212, 165, 116, 0.03);
+}
+
+.main-card.focused {
+  border-color: var(--border-glow);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 0 1px var(--border-glow),
+    0 0 120px rgba(212, 165, 116, 0.06);
+}
+
+/* ===== 问候区域 ===== */
+.greeting {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.greeting-question {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.04em;
+  transition: all var(--transition-medium);
+}
+
+.greeting-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-style: italic;
+  letter-spacing: 0.05em;
+}
+
+/* ===== 每日提示 ===== */
+.daily-prompt {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1rem 1.5rem;
+  background: rgba(212, 165, 116, 0.04);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(212, 165, 116, 0.08);
+}
+
+.daily-prompt-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--accent-gold);
+  margin-bottom: 0.4rem;
+}
+
+.daily-prompt-text {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ===== 写作区域 ===== */
+.writing-area {
+  position: relative;
+}
+
+.writing-textarea {
+  width: 100%;
+  min-height: 140px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  line-height: 1.8;
+  padding: 1.5rem;
+  resize: vertical;
+  outline: none;
+  transition: all var(--transition-medium);
+  letter-spacing: 0.02em;
+}
+
+.writing-textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.writing-textarea:focus {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 3px var(--accent-gold-glow);
+  background: rgba(0, 0, 0, 0.35);
+}
+
+/* ===== 字符计数与情绪指示 ===== */
+.writing-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.char-count {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.char-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: all var(--transition-fast);
+  animation: none;
+}
+
+.char-dot.lit {
+  background: var(--accent-gold);
+  box-shadow: 0 0 6px var(--accent-gold-glow);
+}
+
+.emotion-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  opacity: 0;
+  transition: opacity var(--transition-medium);
+}
+
+.emotion-indicator.visible {
+  opacity: 1;
+}
+
+.emotion-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: all var(--transition-medium);
+}
+
+/* ===== 提交按钮 ===== */
+.submit-area {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+  gap: 1rem;
+}
+
+.btn-submit {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.8rem 2rem;
+  background: linear-gradient(135deg, rgba(212, 165, 116, 0.15), rgba(212, 165, 116, 0.05));
+  border: 1px solid rgba(212, 165, 116, 0.3);
+  color: var(--accent-gold);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  border-radius: 50px;
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  transition: all var(--transition-medium);
+  backdrop-filter: blur(8px);
+}
+
+.btn-submit:hover {
+  background: linear-gradient(135deg, rgba(212, 165, 116, 0.25), rgba(212, 165, 116, 0.1));
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 30px var(--accent-gold-glow);
+  transform: translateY(-1px);
+}
+
+.btn-submit:active {
+  transform: scale(0.97);
+}
+
+.btn-submit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-submit-icon {
+  font-size: 1.2rem;
+}
+
+.btn-secondary {
+  padding: 0.8rem 1.5rem;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-secondary:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--text-primary);
+}
+
+/* ===== 绽放动画层 ===== */
+.bloom-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.bloom-overlay.active {
+  opacity: 1;
+}
+
+/* ===== 反思卡片 ===== */
+.reflection-card {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: rgba(212, 165, 116, 0.04);
+  border: 1px solid rgba(212, 165, 116, 0.1);
+  border-radius: var(--radius-md);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all var(--transition-slow);
+}
+
+.reflection-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reflection-card-title {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  color: var(--accent-gold);
+  margin-bottom: 0.8rem;
+  letter-spacing: 0.06em;
+}
+
+.reflection-card-text {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* ===== 呼吸引导环 ===== */
+.breathing-guide {
+  position: fixed;
+  bottom: 3rem;
+  right: 3rem;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  opacity: 0.4;
+  transition: opacity var(--transition-medium);
+  pointer-events: none;
+}
+
+.breathing-guide:hover {
+  opacity: 0.7;
+}
+
+.breathing-ring {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent-gold);
+  animation: breathe-ring 6s ease-in-out infinite;
+  box-shadow: 0 0 12px rgba(212, 165, 116, 0.15);
+}
+
+.breathing-hint {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  letter-spacing: 0.25em;
+  font-family: var(--font-display);
+}
+
+@keyframes breathe-ring {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.5;
+    border-color: var(--accent-gold);
+  }
+  25% {
+    transform: scale(1.6);
+    opacity: 0.15;
+    border-color: rgba(212, 165, 116, 0.3);
+  }
+  50% {
+    transform: scale(1.6);
+    opacity: 0.15;
+    border-color: rgba(212, 165, 116, 0.3);
+  }
+  75% {
+    transform: scale(1);
+    opacity: 0.5;
+    border-color: var(--accent-gold);
+  }
+}
+
+/* ===== 花园统计 ===== */
+.garden-stats {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  margin-top: 2rem;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all var(--transition-slow);
+}
+
+.garden-stats.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: var(--accent-gold);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ===== 提示类别切换 ===== */
+.prompt-categories {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.cat-btn {
+  padding: 0.35rem 0.9rem;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.cat-btn:hover {
+  color: var(--text-secondary);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.cat-btn.active {
+  background: rgba(212, 165, 116, 0.1);
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+/* ===== 消息提示 ===== */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  padding: 0.8rem 1.5rem;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  backdrop-filter: blur(16px);
+  z-index: 200;
+  transition: transform var(--transition-medium);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.toast.visible {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ===== 花园中的思想气泡 ===== */
+.thought-bubble {
+  position: absolute;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.2rem;
+  max-width: 280px;
+  backdrop-filter: blur(16px);
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateY(5px);
+  transition: all var(--transition-medium);
+  z-index: 60;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.thought-bubble.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.thought-bubble-time {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.thought-bubble-content {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.thought-bubble-emotion {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 50px;
+  font-size: 0.7rem;
+  margin-top: 0.6rem;
+}
+
+/* ===== 花园沉浸式覆盖层 ===== */
+.garden-immersive {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 15;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.garden-immersive.active {
+  opacity: 1;
+}
+
+/* 情绪光环 —— 全屏微妙的色彩氛围 */
+.mood-aura {
+  position: absolute;
+  top: -20%;
+  left: -20%;
+  width: 140%;
+  height: 140%;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(8,8,22,0.7) 100%);
+  transition: background 2000ms ease;
+  pointer-events: none;
+}
+
+/* 底部状态栏 */
+.garden-status-bar {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 0.7rem 1.8rem;
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 50px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  pointer-events: auto;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.garden-status-left {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.garden-status-icon {
+  font-size: 1rem;
+}
+
+.dominant-mood {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.8rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 50px;
+}
+
+.mood-dot-sm {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+  transition: background 600ms ease;
+}
+
+/* 情绪分布条 */
+.garden-status-center {
+  flex: 1;
+  max-width: 200px;
+}
+
+.mood-bar {
+  display: flex;
+  gap: 3px;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.mood-bar-segment {
+  height: 100%;
+  border-radius: 1px;
+  transition: all 600ms ease;
+  min-width: 2px;
+}
+
+/* 浮动书写按钮 */
+.float-write-btn {
+  position: absolute;
+  bottom: 7rem;
+  right: 3rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(212, 165, 116, 0.2), rgba(212, 165, 116, 0.08));
+  border: 1.5px solid rgba(212, 165, 116, 0.4);
+  color: var(--accent-gold);
+  font-size: 1.3rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  transition: all var(--transition-medium);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 30px rgba(212, 165, 116, 0.08);
+  z-index: 20;
+}
+
+.float-write-btn:hover {
+  transform: scale(1.08);
+  background: linear-gradient(135deg, rgba(212, 165, 116, 0.3), rgba(212, 165, 116, 0.15));
+  border-color: var(--accent-gold);
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4), 0 0 50px rgba(212, 165, 116, 0.15);
+}
+
+.float-write-btn:active {
+  transform: scale(0.94);
+}
+
+/* 思想详情侧面板 —— 从右侧丝滑滑入 */
+.thought-detail-panel {
+  position: absolute;
+  top: 50%;
+  right: 2rem;
+  transform: translateY(-50%) translateX(calc(100% + 4rem));
+  width: 360px;
+  max-height: 72vh;
+  overflow-y: auto;
+  background: rgba(16, 16, 40, 0.92);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2rem;
+  pointer-events: auto;
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+  z-index: 25;
+}
+
+.thought-detail-panel.open {
+  transform: translateY(-50%) translateX(0);
+}
+
+/* 面板打开时的微妙光效 */
+.thought-detail-panel::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 20px;
+  right: 20px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 165, 116, 0.4), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease 0.3s;
+}
+
+.thought-detail-panel.open::before {
+  opacity: 1;
+}
+
+.panel-close {
+  position: absolute;
+  top: 1rem;
+  right: 1.2rem;
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.panel-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.panel-emotion {
+  display: inline-block;
+  padding: 0.3rem 0.9rem;
+  border-radius: 50px;
+  font-size: 0.78rem;
+  margin-bottom: 1.2rem;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+}
+
+.panel-content {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--text-primary);
+  line-height: 2;
+  margin-bottom: 1.2rem;
+  letter-spacing: 0.03em;
+}
+
+.panel-depth {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  padding: 1rem 1.2rem;
+  background: rgba(255, 255, 255, 0.025);
+  border-radius: 12px;
+  border-left: 2px solid var(--accent-gold);
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.02em;
+  font-style: italic;
+}
+
+.panel-tags {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.panel-tag {
+  padding: 0.15rem 0.6rem;
+  border-radius: 50px;
+  font-size: 0.7rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.panel-time {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 1rem;
+  opacity: 0.7;
+}
+
+/* ===== 书写模式 —— 背景花园淡化 ===== */
+#gardenContainer.dimmed {
+  opacity: 0.25;
+  filter: blur(2px);
+  transition: all 1s ease;
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 720px) {
+  .main-card {
+    padding: 2rem 1.5rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .greeting-question {
+    font-size: 1.5rem;
+  }
+
+  .nav-brand {
+    font-size: 0.95rem;
+  }
+
+  .top-nav {
+    padding: 0.8rem 1rem;
+  }
+
+  .writing-textarea {
+    min-height: 120px;
+    font-size: 0.95rem;
+    padding: 1rem;
+  }
+
+  .garden-stats {
+    gap: 1.2rem;
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+  }
+}
+
+/* ===== 动画关键帧 ===== */
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33% { transform: translateY(-3px) rotate(0.5deg); }
+  66% { transform: translateY(2px) rotate(-0.5deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px var(--accent-gold-glow); }
+  50% { box-shadow: 0 0 40px rgba(212, 165, 116, 0.5); }
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ===== 滚动条 ===== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ===== 选中样式 ===== */
+::selection {
+  background: rgba(212, 165, 116, 0.25);
+  color: var(--text-primary);
+}
+
+/* ===== 聚焦可见指示 ===== */
+*:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+}
